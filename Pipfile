@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==3.1.2"
+djangorestframework = "==3.12.1"
+
+[dev-packages]
+pylint = "*"
+"autopep8" = "*"
+
+[requires]
+python_version = "3.7"
+
+[scripts]
+server = "python manage.py runserver"
+migrate = "python manage.py migrate"
+startapp = "python manage.py startapp"
+makemigrations = "python manage.py makemigrations"
+createsuperuser = "python manage.py createsuperuser"

@@ -272,7 +272,7 @@ from django.contrib.auth.models import Group  # new
 class CustomUserAdmin(UserAdmin):
     pass
 
-admin.site.unregister(Group)  # new
+admin.site.unregister(Group)   # new
 ```
 
 Ya estamos listos para empezzar con las vistas de la API.

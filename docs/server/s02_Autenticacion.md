@@ -145,17 +145,11 @@ Muy bien, en la siguiente lección vamos a crear el modelo para los usuarios de 
 
 ## C04 Custom User
 
-El modelo genérico de usuario en Django tiene varios campos por defecto, pero para nuestra aplicación nosotros queremos añadir algunos nuevos.
+El modelo de usuario que trae Django es algo limitado y nosotros necesitamos añadir algunos campos nuevos. Una forma de hacerlo es crear un modelo **Profile** enlazado a cada usuario con los campos que queremos, sin embargo en este curso vamos a hacerlo de una forma más profesional: **personalizar el usuario base**.
 
-Una forma de hacerlo es crear un nuevo modelo **Profile** enlazado a cada usuario con los campos que queremos, sin embargo en este curso vamos a ver cómo hacerlo de otra forma algo más profesional: **personalizar el usuario base**.
+**IMPORTANTE**: Antes de continuar es clave no haber creado ningún usuario en la base de datos. Si lo habéis hecho, borrad la base de datos **db.sqlite3** y todos los ficheros del directorio **migrations** excepto los llamados `__init__.py`.
 
-**IMPORTANTE**: Antes de continuar es clave no haber creado ningún usuario en la base de datos. Si lo habéis hecho, borrad la base de datos **db.sqlite3** y todos los ficheros del directorio **migrations** excepto los llamados **\_\_init\_\_.py**.
-
-Para extender el modelo de usuario, vamos a crear un **CustomUser** en nuestra app.
-
-La diferencia más importante respecto a un usuario "clásico" es que, si bien Django maneja como campo identificador del usuario su **username**, nosotros lo identificaremos a través de su **email**.
-
-El objetivo de esto es que los usuarios puedan iniciar sesión con su email en lugar de con su nombre de usuario, algo que siempre ayuda pues el username suele olvidarse fácilmente:
+Para extender el modelo de usuario, vamos a crear un **CustomUser** en nuestra app. La diferencia más importante respecto a un usuario "clásico" es que, si bien Django maneja como campo identificador el **username**, nosotros lo identificaremos con el **email**.
 
 #### **`authentication/models.py`**
 
@@ -173,15 +167,10 @@ Según la [documentación](https://docs.djangoproject.com/en/3.1/topics/auth/cus
 #### **`authentication/models.py`**
 
 ```python
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-
-class CustomUser(AbstractUser):
-    username = models.CharField(
-        max_length=20, unique=True)
-
     USERNAME_FIELD = 'email'  # new
 ```
+
+Con estos cambios los usuarios podrán iniciar sesión con el correo en lugar de usar su username.
 
 En este punto repasemos los campos obligatorios del formulario de registro:
 
@@ -189,20 +178,11 @@ En este punto repasemos los campos obligatorios del formulario de registro:
 - Username: que también debe ser único y se mostrará en el perfil.
 - Password: para la contraseña del usuario.
 
-Según la [documentación](https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#django.contrib.auth.models.CustomUser.REQUIRED_FIELDS), para obligar al usuario a introducir algún campo debemos indicarlo en una lista:
+Según la [documentación](https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#django.contrib.auth.models.CustomUser.REQUIRED_FIELDS), para obligar al usuario a introducir un campo debemos indicarlo en una lista:
 
 #### **`authentication/models.py`**
 
 ```python
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-
-
-class CustomUser(AbstractUser):
-    email = models.EmailField(
-        max_length=150, unique=True)
-
-    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password']  # new
 ```
 
@@ -263,19 +243,12 @@ En cualquier caso ya deberíamos tener acceso a nuestro modelo para crear, edita
 #### **`authentication/admin.py`**
 
 ```python
-from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group  # new
 
-@admin.register(get_user_model())
-class CustomUserAdmin(UserAdmin):
-    pass
-
-admin.site.unregister(Group)   # new
+admin.site.unregister(Group)  # new
 ```
 
-Ya estamos listos para empezzar con las vistas de la API.
+Ya estamos listos para empezar con las vistas de la API.
 
 ## C05 Login y logout
 
@@ -287,4 +260,4 @@ Ya estamos listos para empezzar con las vistas de la API.
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 
-**TO DO: Subir al repo con \<tag> en esta versión**
+**TO DO: Subir al repo con `<tag>` en esta versión**

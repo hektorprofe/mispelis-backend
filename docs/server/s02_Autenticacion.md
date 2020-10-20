@@ -300,13 +300,122 @@ Mezclando el sistema de autenticación clásico de Django basado en cookies de s
 
 ## C06 Login y logout
 
-DRF trae una serie de vistas predefinidas para manejar las funciones de la autenticación, vamos a utilizarlas como base para nuestro sistema.
+Vamos a empezar creando unas vistas básicas de **login** y **login** sobre una **APIView** básica de DRF. La forma de implementar la lógica es exactamente igual que con Django clásico, os dejo el enlace a la [documentación oficial](https://docs.djangoproject.com/en/3.1/topics/auth/default/#how-to-log-a-user-in) por si queréis profundizar:
 
-## C07 Signup
+#### **`authentication/views.py`**
 
-## C08 Reset password
+```python
+from django.contrib.auth import authenticate, login, logout
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-## C09 Portada básica
+
+class LoginView(APIView):
+
+    def post(self, request):
+        # Creamos una respuesta básica
+        response = {'login': 'fail'}
+
+        # # Recuperamos las credenciales y autenticamos al usuario
+        email = request.data.get('email', None)
+        password = request.data.get('password', None)
+        user = authenticate(email=email, password=password)
+
+        # Si es correcto añadimos a la request la información de sesión
+        if user:
+            login(request, user)
+            response['login'] = 'success'
+
+        # Devolvemos la respuesta al cliente
+        return Response(
+            response, status=status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        # Borramos de la request la información de sesión
+        logout(request)
+
+        # Devolvemos la respuesta al cliente
+        return Response(
+            {'logout': 'success'}, status=status.HTTP_200_OK)
+```
+
+Configuramos las dos URL en la app:
+
+#### **`authentication/urls.py`**
+
+```python
+from django.urls import path, include
+from .views import LoginView, LogoutView
+
+urlpatterns = [
+    # Auth views
+    path('auth/login/',
+         LoginView.as_view(), name='auth_login'),
+
+    path('auth/logout/',
+         LogoutView.as_view(), name='auth_logout'),
+]
+```
+
+Y configuramos las URL de la app en el proyecto:
+
+#### **`server/urls.py`**
+
+```python
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework import routers
+
+# Api router
+router = routers.DefaultRouter()
+
+urlpatterns = [
+    # Admin routes
+    path('admin/', admin.site.urls),
+
+    # Api routes
+    path('api/', include('authentication.urls')),
+    path('api/', include(router.urls)),
+]
+```
+
+Con esta estructura tenemos dos endpoints configurados:
+
+- `/api/auth/login/`: Método POST {'email':'xxxx', 'password':'xxxx'}
+- `/api/auth/logout/`: Método POST
+
+En la siguiente lección probaremos si funcionan correctamente.
+
+## C07 Probando la autenticación
+
+Ha llegado la hora de probar la API, la forma más fácil es desde la interfaz que nos provee DRF.
+
+Acceded a la URL de **login** http://localhost:8000/api/auth/login/ y escribid las credenciales en crudo como si fuera un objeto JSON:
+
+```json
+{ "email": "admin@admin.com", "password": "1234" }
+```
+
+Si todo funciona correctamente al enviar el formulario veréis la respuesta de la API y saldrá vuestro email arriba a la derecha indicando que efectivamente estamos identificados:
+
+```json
+{ "login": "success" }
+```
+
+Para probar el **logout**, estando identificados, accedemos a la URL pertinente http://localhost:8000/api/auth/logout/ y al enviar el formulario vacío debería hacernos lo propio:
+
+```json
+{ "logout": "success" }
+```
+
+## C08 Signup
+
+## C09 Reset password
+
+## C10 Portada básica
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 

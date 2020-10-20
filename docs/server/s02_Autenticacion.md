@@ -312,12 +312,8 @@ from rest_framework.views import APIView
 
 
 class LoginView(APIView):
-
     def post(self, request):
-        # Creamos una respuesta básica
-        response = {'login': 'fail'}
-
-        # # Recuperamos las credenciales y autenticamos al usuario
+        # Recuperamos las credenciales y autenticamos al usuario
         email = request.data.get('email', None)
         password = request.data.get('password', None)
         user = authenticate(email=email, password=password)
@@ -325,11 +321,12 @@ class LoginView(APIView):
         # Si es correcto añadimos a la request la información de sesión
         if user:
             login(request, user)
-            response['login'] = 'success'
+            return Response(
+                status=status.HTTP_200_OK)
 
-        # Devolvemos la respuesta al cliente
+        # Si no es correcto devolvemos un error en la petición
         return Response(
-            response, status=status.HTTP_200_OK)
+            status=status.HTTP_404_NOT_FOUND)
 
 
 class LogoutView(APIView):
@@ -338,8 +335,7 @@ class LogoutView(APIView):
         logout(request)
 
         # Devolvemos la respuesta al cliente
-        return Response(
-            {'logout': 'success'}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 ```
 
 Configuramos las dos URL en la app:
@@ -382,10 +378,10 @@ urlpatterns = [
 ]
 ```
 
-Con esta estructura tenemos dos endpoints configurados:
+Con esta estructura tenemos dos endpoints:
 
-- `/api/auth/login/`: Método POST {'email':'xxxx', 'password':'xxxx'}
-- `/api/auth/logout/`: Método POST
+- `/api/auth/login/`
+- `/api/auth/logout/`
 
 En la siguiente lección probaremos si funcionan correctamente.
 
@@ -411,11 +407,72 @@ Para probar el **logout**, estando identificados, accedemos a la URL pertinente 
 { "logout": "success" }
 ```
 
-## C08 Signup
+Si nos logeamos ahora nos devolverá la información que hemos establecido en el serializador:
 
-## C09 Reset password
+```json
+{
+  "email": "admin@admin.com",
+  "username": "admin",
+  "password": "pbkdf2_sha...."
+}
+```
 
-## C10 Portada básica
+Como el campo password no nos interesa serializado vamos a establecer una clásula de sólo escritura, para que Django sólo lo tenga en cuenta al crear o modificar, pero nunca al hacer una lectura:
+
+```python
+password = serializers.CharField(
+    min_length=8, write_only=True)
+```
+
+## C09 Serializando el usuario
+
+Uno de los requisitos del frontend es que justo después de identificarnos la API debe enviar información básica del usuario para utilizarla en la aplicación, como por ejemplo el nombre, el email o más adelante el avatar.
+
+Cuando nos autenticamos conseguimos un objeto **user** con toda esa información, pero no podemos enviarlo al cliente y ya está, necesitamos transformarlo a un objeto JSON. Ese proceso de transformar el objeto de un formato a otro, Python a Javascript en nuestro caso, se conoce como seralización.
+
+DRF permite crear serializadores de modelos para automatizar esta tarea, así que vamos a crear nuestro propio serializador de usuarios:
+
+#### **`authentication/serializers.py`**
+
+```python
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True)
+    username = serializers.CharField(
+        required=True)
+    password = serializers.CharField(
+        min_length=8)
+
+    class Meta:
+        model = get_user_model()
+        fields = ('email', 'username', 'password')
+```
+
+Este serializador básico, a parte de controlar los campos que queremos serializar de Python a JSON, también nos servirá más adelante para configurar métodos como la creación de usuarios durante el registro y la validación personalizada de campos.
+
+Sea como sea vamos a serializar el objeto **user** y a enviarlo como respuesta de la petición de login:
+
+#### **`authentication/views.py`**
+
+```python
+from .serializers import UserSerializer
+
+# ...
+
+return Response(
+    UserSerializer(user).data,
+    status=status.HTTP_200_OK)
+```
+
+## C10 Signup
+
+## C11 Reset password
+
+## C12 Portada básica
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 

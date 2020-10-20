@@ -2,6 +2,14 @@
 
 ## C01 Presentación
 
+En esta unidad vamos a implementar todo el sistema de autenticación de usuarios de nuestra API, el cuál controlará diferentes aspectos como:
+
+- El registro
+- El login y logout
+- La recuperación de contraseña
+
+Toda nuestra API gira alrededor de este sistema, por eso nos tomaremos el tiempo necesario para explicar cuidadosamente cada paso de su desarrollo. Podéis estar seguros de que lo aprendido aquí os servirá en prácticamente todas vuestras futuras APIs creadas con DRF.
+
 ## C02 Entorno y proyecto
 
 Con la carpeta del proyecto **tuspelisdb/** en VSC abrimos una terminal **CMD** en VSC:
@@ -424,7 +432,7 @@ password = serializers.CharField(
     min_length=8, write_only=True)
 ```
 
-## C09 Serializando el usuario
+## C08 Serializando el usuario
 
 Uno de los requisitos del frontend es que justo después de identificarnos la API debe enviar información básica del usuario para utilizarla en la aplicación, como por ejemplo el nombre, el email o más adelante el avatar.
 
@@ -468,11 +476,11 @@ return Response(
     status=status.HTTP_200_OK)
 ```
 
-## C10 Signup
+## C09 Signup
 
-## C11 Reset password
+## C10 Reset password
 
-## C12 Portada básica
+## C11 Portada básica
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 

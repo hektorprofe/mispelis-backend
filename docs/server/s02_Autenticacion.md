@@ -248,15 +248,67 @@ from django.contrib.auth.models import Group  # new
 admin.site.unregister(Group)  # new
 ```
 
-Ya estamos listos para empezar con las vistas de la API.
+Ya estamos listos para empezar con las vistas de la API, pero antes tenemos que tomar una decisión muy importante.
 
-## C05 Login y logout
+## C05 Sistemas de autenticación
 
-## C06 Signup
+Las APIs REST como la que vamos a crear permiten implementar diferentes protocolos de autenticación. Vamos a repasar brevemente los más famosos:
 
-## C07 Reset password
+- **Básica**: Es el método más sencillo pero inseguro, ya que se basa en enviar el usuario y su contraseña codificadas en **Base64** en las cabeceras de cada petición. Tened en cuenta que la codificiación en Base64 es una formalidad y es tan sencillo descodificar una cadena en este formato como pasar el valor a una función de cualquier lenguaje de programación.
 
-## C08 Portada básica
+```bash
+Authorization: Basic base64(username:password)
+```
+
+- **API Keys**: Otro sistema bastante utilizado es enviar una **key** facilitada por la API que sustituye las credenciales de un usuario. Muchas APIs públicas ofrecen este sistema porque es fácil añadirle un límite de peticiones diarias, pero en la práctica es sustituir la cadena de autenticación por la clave que se provee a cliente.
+
+```
+Authorization: Apikey <key>
+```
+
+- **Bearer**: También conocida como _Token Authentication_ se basa en proveer al cliente de un "código" después de identificarse por primera vez. En lugar de enviar todo el rato el usuario y su contraseña, el cliente envía ese código generado por el backend en la cabecera de las peticiones. Es igual de inseguro que la autenticación básica, pero como mínimo no se mandan las credenciales en cada petición.
+
+```
+Authorization: Bearer <token>
+```
+
+- **JSON Web Tokens**: Los JWT son un estándar abierto de la industria para representar peticiones de forma "segura" entre dos partes. Este sistema añade una capa extra de seguridad en los tokens, con mecanismos de decodificación, verificación y renovación de los mismos.
+
+```
+Authorization: Bearer <JWT token>
+```
+
+- **OAuth2**: Este sistema de autenticación permite compartir información entre sitios sin compartir las credenciales del usuario. En lugar de generar el token en nuestro backend se delega este proceso una plataforma de terceros, de manera que no necesitamos almacenar el usuario y la contraseña en la base de datos. Oauth2 es muy cómodo, pero si tenemos interés en almacenar información del usuario en nuestra base de datos igualmente necesitaremos implementar un sistema de usuarios y pedirle la información a esas plataformas de terceros. Casi nunca se utiliza como sistema único de autenticación, sino como apoyo de nuestro propio sistema.
+
+```
+Authorization: Bearer <Oauth2 token>
+```
+
+Con esto hemos cubierto prácticamente todos los sistemas de autenticación. ¿Cuál vamos a utilizar? Pues... ninguno de ellos.
+
+Veréis... la gracia de las APIs es que permiten separar la lógica del servidor y la del cliente. Sin embargo esto tiene un problema inherente y es que los clientes deben almacenar las credenciales de acceso en la memoria para poder enviarlas en las peticiones.
+
+El problema de que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto es vulnerable a ser accedida utilizando un ataque XSS (Cross-site Scripting).
+
+Por tanto este problema radica en la propia naturaleza de JavaScript y no se puede solucionar... ¿Entonces qué hacemos?
+
+No os preocupéis porque Django es tan maravilloso que resolverá todos nuestros problemas él solito gracias un sistema clásico de autenticación basado en **cookies de sesión**.
+
+Ya sé lo que estáis pensando algunos... las cookies también son accesibles desde Javascript y vulnerables a ataques XSS así que no vamos a solucionar nada. Y tendríais toda la razón del mundo, si no fuera porque estamos en el año 2020 y existen un nuevo tipo de cookies llamadas **HttpOnly**. Estas cookies son inaccesibles desde Javascript y el navegador las envían automáticamente al servidor.
+
+Mezclando las cookies de sesión **HttpOnly** y los tokens **CSRF** que implementa Django automáticamente, lograremos un sistema de autenticación robusto, muy seguro y lo mejor de todo... super fácil de implementar.
+
+Os garantizo que sólo por esto ya os ha valido la pena el curso.
+
+## C06 Login y logout
+
+DRF trae una serie de vistas predefinidas para manejar las funciones de la autenticación, vamos a utilizarlas como base para nuestro sistema.
+
+## C07 Signup
+
+## C08 Reset password
+
+## C09 Portada básica
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 

@@ -286,19 +286,17 @@ Authorization: Bearer <Oauth2 token>
 
 Con esto hemos cubierto prácticamente todos los sistemas de autenticación. ¿Cuál vamos a utilizar? Pues... ninguno de ellos.
 
-Veréis... la gracia de las APIs es que permiten separar la lógica del servidor y la del cliente. Sin embargo esto tiene un problema inherente y es que los clientes deben almacenar las credenciales de acceso en la memoria para poder enviarlas en las peticiones.
+Veréis, la gracia de las APIs es que permiten separar la lógica del servidor y la del cliente. Sin embargo esto tiene un problema inherente y es que los clientes deben almacenar las credenciales de acceso en la memoria para poder enviarlas en las peticiones.
 
-El problema de que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto es vulnerable a ser accedida utilizando un ataque XSS (Cross-site Scripting).
+Que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto son vulnerables a ser accedidas utilizando ataques XSS (Cross-site Scripting).
 
-Por tanto este problema radica en la propia naturaleza de JavaScript y no se puede solucionar... ¿Entonces qué hacemos?
+Por tanto el problema radica en la propia naturaleza de JavaScript... ¿Cómo lo solucionamos? Pues haciendo inaccesibles las credenciales en el cliente.
 
-No os preocupéis porque Django es tan maravilloso que resolverá todos nuestros problemas él solito gracias un sistema clásico de autenticación basado en **cookies de sesión**.
+Espera espera Héctor... ¿Eso se puede hacer? ¿Cómo va a enviar las credenciales el cliente si no tiene acceso a ellas? La respuesta está en las **cookies**.
 
-Ya sé lo que estáis pensando algunos... las cookies también son accesibles desde Javascript y vulnerables a ataques XSS así que no vamos a solucionar nada. Y tendríais toda la razón del mundo, si no fuera porque estamos en el año 2020 y existen un nuevo tipo de cookies llamadas **HttpOnly**. Estas cookies son inaccesibles desde Javascript y el navegador las envían automáticamente al servidor.
+Ya sé lo que estáis pensando algunos... las cookies también son accesibles desde Javascript y por tanto vulnerables a ataques XSS, así que no vamos a solucionar nada. Por suerte para nosotros existe una cláusula en las cookies llamada **HttpOnly**. Esta opción hace que las cookies sean inaccesibles desde JavaScript y el navegador las recibe y envía automáticamente al servidor.
 
-Mezclando las cookies de sesión **HttpOnly** y los tokens **CSRF** que implementa Django automáticamente, lograremos un sistema de autenticación robusto, muy seguro y lo mejor de todo... super fácil de implementar.
-
-Os garantizo que sólo por esto ya os ha valido la pena el curso.
+Mezclando el sistema de autenticación clásico de Django basado en cookies de sesión, junto con la cláusula **HttpOnly** y sus tokens **CSRF**, lograremos un sistema robusto, seguro y lo mejor de todo... muy fácil de implementar.
 
 ## C06 Login y logout
 

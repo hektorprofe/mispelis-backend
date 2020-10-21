@@ -673,11 +673,37 @@ Yo no lo voy a hacer porque se me alargaría demasiado la lección, no es difíc
 
 ## C11 Peticiones CORS
 
-Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
+Con Dani, adaptar el backend para probar el frontend:
+
+- Configurar las cookies HttpOnly y peticiones CSRF
+- Configurar las peticiones cruzadas
+
+```python
+# Configuración de las cookies de sesión
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_DOMAIN = None
+
+# Configuración de los cors headers
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000"
+]
+
+# Si estamos en un entorno de producción usando un dominio
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_DOMAIN = ".ejemplo.com"
+    CORS_ORIGIN_WHITELIST = [
+        "https://ejemplo.com",
+        "https://www.ejemplo.com"
+    ]
+```
 
 ## Extra: Taggear el repo
 
 ```bash
 # https://git-scm.com/book/en/v2/Git-Basics-Tagging
 git tag -a u2.0 -m "Unidad 2 versión 0"
+git push --tags
 ```

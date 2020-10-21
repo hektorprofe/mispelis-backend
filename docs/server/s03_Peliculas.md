@@ -2,6 +2,8 @@
 
 ## C01 Vista de peli sin interacción de los usuarios
 
+--> Proteger vistas protegidas
+
 ## C02 App Films
 
 Comenzar a crear los modelos relaciones e igual serializados? Depende de cuan larga quieras hacer esta sección.

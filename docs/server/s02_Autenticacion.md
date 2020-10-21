@@ -478,9 +478,234 @@ return Response(
 
 ## C09 Signup
 
-## C10 Reset password
+En esta lección vamos a por la vista de registro, donde a partir de un email, username y password crearemos usuarios en la base de datos.
 
-## C11 Portada básica
+DRF tiene una vista llamada **CreateAPIView** que automatiza la tarea de crear instancias a partir de un serializador, vamos a usarla para facilitarnos la vida:
+
+#### **`authentication/views.py`**
+
+```python
+from rest_framework import generics, status
+
+# ...
+
+class SignupView(generics.CreateAPIView):
+    serializer_class = UserSerializer
+```
+
+Añadimos la vista a la URL y a probar si funciona:
+
+#### **`authentication/urls.py`**
+
+```python
+from django.urls import path, include
+from .views import LoginView, LogoutView, SignupView
+
+urlpatterns = [
+    # ...
+    path('auth/signup/',
+         SignupView.as_view(), name='auth_signup'),
+]
+```
+
+Ahora probamos el formulario de registro en el endpoint http://localhost:8000/api/auth/signup/ y...
+
+```
+Email: test@test.com
+Username: test
+Password: 12345678
+```
+
+¡Parece que funcionó! Pero no cantemos victoria, vamos a revisar desde el panel de administración si está todo correcto.
+
+Al entrar al panel de administración vemos que efectivamente el usuario existe, sin embargo al acceder más a fondo podemos comprobar un aviso preocupaunte:
+
+```
+Formato de clave incorrecto o algoritmo de hash desconocido.
+```
+
+¿Sabéis que ha pasado? Que las contraseñas de usuario en Django se tienen que guardar encriptadas y nosotros la hemos guardado en crudo.
+
+Para codificar la contraseña se me ha ocurrido una forma muy sencilla. Podemos añadir un validador al campo password y utilizar el método **make_password** de Django que lo codifica él solito:
+
+#### **`authentication/serializers.py`**
+
+```python
+from django.contrib.auth.hashers import make_password
+
+# ...
+
+def validate_password(self, value):
+    return make_password(value)
+```
+
+Voy a **borrar el usuario test** y a probar si esta vez funciona bien:
+
+```
+Email: test@test.com
+Username: test
+Password: 12345678
+```
+
+Y...
+
+```json
+{
+  "email": "test@test.com",
+  "username": "test"
+}
+```
+
+Si consultamos el administrador ya no aparece el error de codificación y podemos iniciar sesión sin problema:
+
+```json
+{ "email": "test@test.com", "password": "12345678" }
+```
+
+¡Listo!
+
+## C10 Recuperar contraseña
+
+Un buen sistema de autenticación debe proveer una función de recuperación de contraseña para usuarios despistados.
+
+Una funcionalidad así requiere bastante planificación, crear varias vistas, confirmaciones por email, etc. Sin embargo investigando un poco encontré una **app** de Django que nos hará la mayor parte del trabajo, vamos a instalarla y configurarla:
+
+```bash
+cd server
+pipenv install django-rest-passwordreset==1.1.0
+```
+
+Una vez instalada la añadimos a las **apps** del proyecto:
+
+#### **`server/settings.py`**
+
+```python
+INSTALLED_APPS = [
+
+    # Django internal apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # Django external apps
+    'rest_framework',
+    'django_rest_passwordreset',  # new
+
+    # Django custom apps
+    'authentication',
+]
+```
+
+Según la [documentación](https://github.com/anexia-it/django-rest-passwordreset) de esta app, ahora tenemos que migrar para crear algunos campos en la base de datos:
+
+```bash
+cd server
+pipenv run migrate
+```
+
+Añadir un endpoint para manejar las vistas de recuperar contraseña:
+
+#### **`authentication/urls.py`**
+
+```python
+urlpatterns = [
+    # ...
+    path('auth/reset/',
+         include('django_rest_passwordreset.urls',
+                 namespace='password_reset')),
+]
+```
+
+Ahora tenemos que crear dos templates con el enlace que llegará al cliente por email y gracias al cuál podrá regenerar la contraseña. Uno en HTML y otro en texto plano. Os los adjunto en los recursos:
+
+#### **`authentication/templates/email/user_reset_password.html`**
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <p>Se ha solicitado restablecer la contraseña de su cuenta.</p>
+    <p>Haga <a href="{{ reset_password_url }}">clic aquí</a> para continuar.</p>
+    <p>
+      <small>
+        El proceso es válido durante 24 horas después de la solicitud.
+      </small>
+    </p>
+  </body>
+</html>
+```
+
+Y en texto plano:
+
+#### **`authentication/templates/email/user_reset_password.txt`**
+
+```txt
+Se ha solicitado restablecer la contraseña de su cuenta.
+Visite este enlace para continuar: {{ reset_password_url }}
+El proceso es válido durante 24 horas después de la solicitud.
+```
+
+Con esto podemos acceder al endpoint de la API para recuperar una contraseña y probar si funciona http://localhost:8000/api/auth/reset/:
+
+```
+test@test.com
+```
+
+Esta petición nos devolverá:
+
+```json
+{
+  "status": "OK"
+}
+```
+
+¿Qué ha ocurrido? ¿Se supone que debería haber enviado mágicamente un correo? Pues no, esta petición sólo genera el token de recuperación en la tabla de la app. Podemos confirmarlo consultando el panel de administrador.
+
+Para completar el ciclo falta un paso, enviar el correo al cliente cuando se crea el token. Según la [documentación](https://github.com/anexia-it/django-rest-passwordreset#example-for-sending-an-e-mail) de la app, se puede lograr configurando una de la siguiente forma:
+
+```python
+from django.dispatch import receiver
+from django_rest_passwordreset.signals import reset_password_token_created
+
+#...
+
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+    # Aquí deberíamos mandar un correo al cliente...
+    print(
+        f"\nRecupera la contraseña del correo '{reset_password_token.user.email}' usando el token '{reset_password_token.key}' desde la API http://localhost:8000/api/auth/reset/confirm/.\n\n"
+
+        f"También puedes hacerlo directamente desde el cliente web en http://localhost:3000/new-password/?token={reset_password_token.key}.\n")
+```
+
+Con esto es suficiente para probar la funcionalidad, probad de nuevo a recuperar la contraseña http://localhost:8000/api/auth/reset/ y veréis el mensaje por la terminal del servidor:
+
+```
+Recupera la contraseña del correo test@test.com desde la API http://localhost:8000/api/auth/reset/confirm/ usando el token 73538969130d6e9d4a6299a343d512af15b8.
+
+También puedes hacerlo directamente desde el cliente web en este enlace http://localhost:3000/new-password/?token=73538969130d6e9d4a6299a343d512af15b8.
+```
+
+A través del enlace a la API podemos acceder al formulario, escribir el token con la nueva contraseña y debería hacernos el cambio. Eso sí, tened en cuenta que el validador de esta app es más exigente y si la contraseña no es bastante segura nos la tumbará devolviendo varios errores:
+
+```
+Contraseña: Test1234
+Token: 73538969130d6e9d4a6299a343d512af15b8
+```
+
+Con esto tenemos la funcionalidad cubierta, sólo faltaría configurar un cliente de correo en Django y pulir la señal para enviar emails en lugar de mostrar ese **print** en la terminal.
+
+Yo no lo voy a hacer porque se me alargaría demasiado la lección, no es difícil pero si engorroso. Si os interesa probar os dejo todo lo que necesitáis en un fichero **reto_emails.zip** adjunto en la lección. Puede ser un buen reto final de sección para poner a prueba vuestra capacidad como programadores.
+
+¡Mucha suerte a los atrevidos!
+
+## C12 Portada básica
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 

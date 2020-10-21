@@ -619,38 +619,6 @@ urlpatterns = [
 ]
 ```
 
-Ahora tenemos que crear dos templates con el enlace que llegará al cliente por email y gracias al cuál podrá regenerar la contraseña. Uno en HTML y otro en texto plano. Os los adjunto en los recursos:
-
-#### **`authentication/templates/email/user_reset_password.html`**
-
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-  </head>
-  <body>
-    <p>Se ha solicitado restablecer la contraseña de su cuenta.</p>
-    <p>Haga <a href="{{ reset_password_url }}">clic aquí</a> para continuar.</p>
-    <p>
-      <small>
-        El proceso es válido durante 24 horas después de la solicitud.
-      </small>
-    </p>
-  </body>
-</html>
-```
-
-Y en texto plano:
-
-#### **`authentication/templates/email/user_reset_password.txt`**
-
-```txt
-Se ha solicitado restablecer la contraseña de su cuenta.
-Visite este enlace para continuar: {{ reset_password_url }}
-El proceso es válido durante 24 horas después de la solicitud.
-```
-
 Con esto podemos acceder al endpoint de la API para recuperar una contraseña y probar si funciona http://localhost:8000/api/auth/reset/:
 
 ```
@@ -660,9 +628,7 @@ test@test.com
 Esta petición nos devolverá:
 
 ```json
-{
-  "status": "OK"
-}
+{ "status": "OK" }
 ```
 
 ¿Qué ha ocurrido? ¿Se supone que debería haber enviado mágicamente un correo? Pues no, esta petición sólo genera el token de recuperación en la tabla de la app. Podemos confirmarlo consultando el panel de administrador.
@@ -701,12 +667,17 @@ Token: 73538969130d6e9d4a6299a343d512af15b8
 
 Con esto tenemos la funcionalidad cubierta, sólo faltaría configurar un cliente de correo en Django y pulir la señal para enviar emails en lugar de mostrar ese **print** en la terminal.
 
-Yo no lo voy a hacer porque se me alargaría demasiado la lección, no es difícil pero si engorroso. Si os interesa probar os dejo todo lo que necesitáis en un fichero **reto_emails.zip** adjunto en la lección. Puede ser un buen reto final de sección para poner a prueba vuestra capacidad como programadores.
+Yo no lo voy a hacer porque se me alargaría demasiado la lección, no es difícil pero si engorroso. Si os interesa probar os dejo todo lo que necesitáis en un fichero **reto_emails.zip** adjunto en la lección. Puede ser un buen reto final de la sección para poner a prueba vuestra capacidad como programadores.
 
 ¡Mucha suerte a los atrevidos!
 
-## C12 Portada básica
+## C11 Peticiones CORS
 
 Hacer que el proyecto sea accesible desde el cliente (tipico cors-headers, podría aparecer Hektor por ahi cuando falla durante el frontend y nos salta el fallo)
 
-**TO DO: Subir al repo con `<tag>` en esta versión**
+## Extra: Taggear el repo
+
+```bash
+# https://git-scm.com/book/en/v2/Git-Basics-Tagging
+git tag -a u2.0 -m "Unidad 2 versión 0"
+```

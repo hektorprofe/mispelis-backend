@@ -296,7 +296,7 @@ Con esto hemos cubierto prácticamente todos los sistemas de autenticación. ¿C
 
 Veréis, la gracia de las APIs es que permiten separar la lógica del servidor y la del cliente. Sin embargo esto tiene un problema inherente y es que los clientes deben almacenar las credenciales de acceso en la memoria para poder enviarlas en las peticiones.
 
-Que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto son vulnerables a ser accedidas utilizando ataques XSS (Cross-site Scripting), [os dejo un enlace]() en los recursos con más información sobre esta vulnerabilidad.
+Que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto son vulnerables a ser accedidas utilizando ataques XSS (Cross-site Scripting), [os dejo un enlace](https://es.wikipedia.org/wiki/Cross-site_scripting) en los recursos con más información sobre esta vulnerabilidad.
 
 Por tanto el problema radica en la propia naturaleza de JavaScript... ¿Cómo lo solucionamos? Pues haciendo inaccesibles las credenciales en el cliente.
 
@@ -675,13 +675,19 @@ Yo no lo voy a hacer porque se me alargaría demasiado la lección, no es difíc
 
 ## C11 Peticiones CORS
 
-Al acceder a la API desde un cliente web, tal como la tenemos ahora, veremos que la API responde con un error:
+_En esta lección aparecerá Dani del futuro: "Hola héctor, vengo del futuro para avisarte de que las peticiones a la API no funcionan porque tienes que configurar el servidor para permitir las peticiones CORS, clona el cliente del repoy pruébalo tú mismo, así me lo dejáis preparado"._
+
+_**Entonces clonaré el repositorio para testearlo y veremos como falla.**_
+
+Al acceder a la API desde un cliente web, tal como la tenemos ahora nos responde con el error:
 
 ```
 Access to XMLHttpRequest at 'http://localhost:8000/api/auth/login/' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ```
 
-El error **Access-Control-Allow-Origin** indica que se ha bloqueado la petición por ser de tipo CORS (Cross Origin Resource Sharing). Esto sucede porque Django no permite peticiones desde un dominio diferente al del servidor. Para permitirlas vamos a utilizar una app externa que nos lo hará todo más fácil:
+El error **Access-Control-Allow-Origin** indica que se ha bloqueado la petición por ser de tipo CORS (Cross Origin Resource Sharing). Esto sucede porque Django no permite peticiones desde distinto hosts y esto es algo que afecta tanto al dominio como al puerto. Al correr Django en el 8000 y el cliente React en el 3000, los toma como dos hosts diferentes y salta el error.
+
+Para solucionar este problema tenemos que activar estas peticiones CORS y lo vamos a hacer gracias a una app externa que facilita mucho la configuración:
 
 ```bash
 cd server
@@ -747,6 +753,6 @@ Sea como sea ya tenemos la configuración lista para la mayor parte del desarrol
 
 ```bash
 # https://git-scm.com/book/en/v2/Git-Basics-Tagging
-git tag -a "Unidad 2.1"
+git tag -a "Unidad2.1" -m "Unidad 2.1"
 git push --tags
 ```

@@ -296,19 +296,21 @@ Con esto hemos cubierto prácticamente todos los sistemas de autenticación. ¿C
 
 Veréis, la gracia de las APIs es que permiten separar la lógica del servidor y la del cliente. Sin embargo esto tiene un problema inherente y es que los clientes deben almacenar las credenciales de acceso en la memoria para poder enviarlas en las peticiones.
 
-Que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto son vulnerables a ser accedidas utilizando ataques XSS (Cross-site Scripting).
+Que la información se encuentre almacenada en el cliente implica un defecto de facto en un cliente web y es que esas credenciales SIEMPRE son accesibles a través de JavaScript y por tanto son vulnerables a ser accedidas utilizando ataques XSS (Cross-site Scripting), [os dejo un enlace]() en los recursos con más información sobre esta vulnerabilidad.
 
 Por tanto el problema radica en la propia naturaleza de JavaScript... ¿Cómo lo solucionamos? Pues haciendo inaccesibles las credenciales en el cliente.
 
 Espera espera Héctor... ¿Eso se puede hacer? ¿Cómo va a enviar las credenciales el cliente si no tiene acceso a ellas? La respuesta está en las **cookies**.
 
-Ya sé lo que estáis pensando algunos... las cookies también son accesibles desde Javascript y por tanto vulnerables a ataques XSS, así que no vamos a solucionar nada. Por suerte para nosotros existe una cláusula en las cookies llamada **HttpOnly**. Esta opción hace que las cookies sean inaccesibles desde JavaScript y el navegador las recibe y envía automáticamente al servidor.
+Ya sé lo que estáis pensando algunos... las cookies también son accesibles desde Javascript y por tanto vulnerables a ataques XSS, así que no vamos a solucionar nada. Sin embargo, y por suerte para nosotros, existe una cláusula en las cookies llamada **HttpOnly** que Django activa automáticamente en las sesiones. Esta opción hace que las cookies sean inaccesibles desde JavaScript y que sea el propio navegador quien las gestiona.
 
-Mezclando el sistema de autenticación clásico de Django basado en cookies de sesión, junto con la cláusula **HttpOnly** y sus tokens **CSRF**, lograremos un sistema robusto, seguro y lo mejor de todo... muy fácil de implementar.
+Con todo esto lograremos un sistema muy robusto, seguro y fácil de implementar.
+
+¡Gracias Django!
 
 ## C06 Login y logout
 
-Vamos a empezar creando unas vistas básicas de **login** y **login** sobre una **APIView** básica de DRF. La forma de implementar la lógica es exactamente igual que con Django clásico, os dejo el enlace a la [documentación oficial](https://docs.djangoproject.com/en/3.1/topics/auth/default/#how-to-log-a-user-in) por si queréis profundizar:
+Vamos a empezar creando unas vistas básicas de **login** y **logout** usando una **APIView** básica de DRF. La forma de implementar la lógica es exactamente igual que con Django clásico, os dejo el enlace a la [documentación oficial](https://docs.djangoproject.com/en/3.1/topics/auth/default/#how-to-log-a-user-in) por si queréis profundizar:
 
 #### **`authentication/views.py`**
 
@@ -673,37 +675,78 @@ Yo no lo voy a hacer porque se me alargaría demasiado la lección, no es difíc
 
 ## C11 Peticiones CORS
 
-Con Dani, adaptar el backend para probar el frontend:
+Al acceder a la API desde un cliente web, tal como la tenemos ahora, veremos que la API responde con un error:
 
-- Configurar las cookies HttpOnly y peticiones CSRF
-- Configurar las peticiones cruzadas
+```
+Access to XMLHttpRequest at 'http://localhost:8000/api/auth/login/' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+El error **Access-Control-Allow-Origin** indica que se ha bloqueado la petición por ser de tipo CORS (Cross Origin Resource Sharing). Esto sucede porque Django no permite peticiones desde un dominio diferente al del servidor. Para permitirlas vamos a utilizar una app externa que nos lo hará todo más fácil:
+
+```bash
+cd server
+pipenv install django-cors-headers==3.5.0
+```
+
+La activamos:
+
+#### **`tuspelisdb/server/settings.py`**
 
 ```python
-# Configuración de las cookies de sesión
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_DOMAIN = None
+INSTALLED_APPS = [
+    # ...
 
-# Configuración de los cors headers
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = [
-    "http://localhost:3000"
+    # Django external apps
+    'corsheaders',
+    'rest_framework',
+    'django_rest_passwordreset',
+
+    # ...
 ]
-
-# Si estamos en un entorno de producción usando un dominio
-if not DEBUG:
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_DOMAIN = ".ejemplo.com"
-    CORS_ORIGIN_WHITELIST = [
-        "https://ejemplo.com",
-        "https://www.ejemplo.com"
-    ]
 ```
+
+La [documentación oficial](https://github.com/adamchainz/django-cors-headers) explica que tenemos que configurar un middleware con preferencia, el cuál se encargará de procesar las peticiones CORS:
+
+```python
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    # ...
+]
+```
+
+Finalmente hay que añadir los dominios que queremos permitir en las peticiones CORS, en nuestro caso el de la URL del cliente:
+
+```python
+# Configuración de CORS
+CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
+```
+
+Si probamos de nuevo nos devolverá un error diferent al anterior:
+
+```
+Access to XMLHttpRequest at 'http://localhost:8000/api/auth/login/' from origin 'http://localhost:3000' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Credentials' header in the response is '' which must be 'true' when the request's credentials mode is 'include'. The credentials mode of requests initiated by the XMLHttpRequest is controlled by the withCredentials attribute.
+```
+
+El error ahora se llama **'Access-Control-Allow-Credentials'** y nos pide quye se puedan gestionar las credenciales de la sesión en las cabeceras de las peticiones CORS. Hacerlo es tan fácil como añadir una simple línea:
+
+```python
+CORS_ALLOW_CREDENTIALS = True
+```
+
+Debido a que estamos usando un sistema de autenticación clásico de Django, éste espera que el cliente maneje las credenciales con el atributo **withCredentials** en las peticiones, tal como indicaba la parte final del error:
+
+```
+The credentials mode of requests initiated by the XMLHttpRequest is controlled by the withCredentials attribute.
+```
+
+Tampoco debemos olvidar que **Django** implementa un sistema de seguridad contra exploits **CSRF** (Cross-Site Request Forgery), por lo que en las peticiones se espera recibir de vuelta una cookie con el **csrftoken**, pero eso es algo que se configura en el cliente. Si queréis saber más sobre esta vulernabilidad [os dejo un enlace](https://es.wikipedia.org/wiki/Cross-site_request_forgery) en los recursos.
+
+Sea como sea ya tenemos la configuración lista para la mayor parte del desarrollo. ha sido una unidad larga pero de vital importancia. A partir de ahora todas serán más cortas y prácticas.
 
 ## Extra: Taggear el repo
 
 ```bash
 # https://git-scm.com/book/en/v2/Git-Basics-Tagging
-git tag -a u2.0 -m "Unidad 2 versión 0"
+git tag -a "Unidad 2.1"
 git push --tags
 ```

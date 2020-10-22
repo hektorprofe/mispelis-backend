@@ -7,6 +7,7 @@ name = "pypi"
 django = "==3.1.2"
 djangorestframework = "==3.12.1"
 django-rest-passwordreset = "==1.1.0"
+django-cors-headers = "==3.5.0"
 
 [dev-packages]
 pylint = "*"

@@ -1,18 +1,17 @@
 # Instrucciones
 
-## Versiones disponibles en el repositorio
+Ramas disponibles
 
-### Unidad 2: Autenticación
+- **unidad_02**
 
-- **Unidad2.1**
-- **Unidad2.2**: Versión final
+## Manejar ramas
 
 ```bash
-# Recuperar una versión determinada
-git checkout <version>
+# Cambiar a una rama
+git checkout <rama>
 
 # Ejemplo
-git checkout Unidad2.2
+git checkout unidad_02
 ```
 
 ## Instalar entorno virtual

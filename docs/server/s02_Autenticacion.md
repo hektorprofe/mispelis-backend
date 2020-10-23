@@ -748,11 +748,3 @@ The credentials mode of requests initiated by the XMLHttpRequest is controlled b
 Tampoco debemos olvidar que **Django** implementa un sistema de seguridad contra exploits **CSRF** (Cross-Site Request Forgery), por lo que en las peticiones se espera recibir de vuelta una cookie con el **csrftoken**, pero eso es algo que se configura en el cliente. Si queréis saber más sobre esta vulernabilidad [os dejo un enlace](https://es.wikipedia.org/wiki/Cross-site_request_forgery) en los recursos.
 
 Sea como sea ya tenemos la configuración lista para la mayor parte del desarrollo.
-
-## Extra: Taggear el repo
-
-```bash
-# https://git-scm.com/book/en/v2/Git-Basics-Tagging
-git tag -a "Unidad2.2" -m "Unidad 2.2"
-git push --tags
-```

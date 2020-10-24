@@ -10,10 +10,12 @@
 # settings.py django
 
 if not DEBUG:
+
+    MEDIA_URL = 'https://www.ejemplo.com/media/'
+
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_DOMAIN = ".ejemplo.com"
     CORS_ORIGIN_WHITELIST = [
-    "https://ejemplo.com",
-    "https://www.ejemplo.com"
-]
+        "https://www.ejemplo.com"
+    ]
 ```

@@ -229,7 +229,7 @@ class FilmSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class FilmGenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmGenre
         fields = '__all__'
@@ -293,9 +293,3 @@ Vista de peli sin interacción de los usuarios
 ## C08 Base de datos preparada
 
 ## C09 Mejorar portada: Slideshow random
-
-**TO DO: Subir al repo con \<tag> en esta versión**
-
-```
-
-```

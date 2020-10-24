@@ -277,8 +277,8 @@ Y ya podremos navegar por los viewsets de nuestra API:
 
 - http://127.0.0.1:8000/api/
 - http://127.0.0.1:8000/api/films/
-- http://127.0.0.1:8000/api/films/`<id>`/
-- http://127.0.0.1:8000/api/genres/`<slug>`/
+- http://127.0.0.1:8000/api/films/:id/
+- http://127.0.0.1:8000/api/genres/:slug/
 
 En la siguiente lección puliremos los serializadores para ofrecer más información.
 

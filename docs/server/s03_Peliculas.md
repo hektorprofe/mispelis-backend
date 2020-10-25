@@ -584,7 +584,7 @@ Si probamos ahora con la nueva lógica...
 
 ¡Solucionado! ¿Qué bien quedan nuestras clases anidadas verdad?
 
-Por ahora os dejo [documentación](https://www.django-rest-framework.org/api-guide/serializers/) sobre ellos en los recursos, sólo por si queréis seguir aprendiendo por vuestra cuenta.
+Por ahora os dejo [documentación](https://www.django-rest-framework.org/api-guide/serializers/) sobre los serializadores en los recursos, sólo por si queréis aprender un poco más por vuestra cuenta...
 
 ## C06 Base de datos preparada
 

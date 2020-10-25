@@ -455,15 +455,13 @@ class NestedFilmSerializer(serializers.ModelSerializer):
         model = Film
         fields = ['id', 'title', 'image_thumbnail', 'genres']
 
-        # BORRAMOS LO SIGUIENTE ========>
+        class NestedFilmGenreSerializer(serializers.ModelSerializer):
 
-        # class NestedFilmGenreSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = FilmGenre
+                fields = '__all__'
 
-        #     class Meta:
-        #         model = FilmGenre
-        #         fields = '__all__'
-
-        # genres = NestedFilmGenreSerializer(many=True)
+        genres = NestedFilmGenreSerializer(many=True)
 ```
 
 De hecho vamos a quitar los géneros de las películas en los géneros, es demasiado redundante y en el fondo sólo quería liaros un poco para que vieses una muestra del potencial de anidar serializadores:

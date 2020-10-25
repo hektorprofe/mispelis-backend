@@ -20,8 +20,14 @@ class FilmGenreSerializer(serializers.ModelSerializer):
 
 class FilmSerializer(serializers.ModelSerializer):
 
-    genres = FilmGenreSerializer(many=True)
-
     class Meta:
         model = Film
         fields = '__all__'
+
+    class NestedFilmGenreSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = FilmGenre
+            fields = '__all__'
+
+    genres = NestedFilmGenreSerializer(many=True)

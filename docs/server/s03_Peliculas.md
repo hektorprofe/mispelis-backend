@@ -486,7 +486,105 @@ class NestedFilmSerializer(serializers.ModelSerializer):
         # genres = NestedFilmGenreSerializer(many=True)
 ```
 
-Seguiremos editando estos serializadores en el futuro para añadir más funcionalidades, por ahora os dejo [documentación](https://www.django-rest-framework.org/api-guide/serializers/) sobre ellos en los recursos.
+Conseguiremos así una serialización mucho más simple:
+
+```json
+[
+  {
+    "id": 1,
+    "films": [
+      {
+        "id": "42569494-d623-446e-8d14-3686860c5277",
+        "title": "Prueba de pelicula",
+        "image_thumbnail": "http://localhost:8000/media/films/xxx/yyy.png"
+      }
+    ],
+    "name": "Prueba",
+    "slug": "prueba"
+  }
+]
+```
+
+Sin embargo hacer todo ha desembocado en un último problemilla.
+
+Si consultamos una película en la API veremos que nos está mostrando los géneros con las películas dentro de las películas... todo un lío:
+
+```json
+[
+  {
+    "id": "42569494-d623-446e-8d14-3686860c5277",
+    "genres": [
+      {
+        "id": 1,
+        "films": [
+          {
+            "id": "42569494-d623-446e-8d14-3686860c5277",
+            "title": "Prueba de pelicula",
+            "image_thumbnail": "http://localhost:8000/media/films/xxx/yyy.png"
+          }
+        ],
+        "name": "Prueba",
+        "slug": "prueba"
+      }
+    ],
+    "title": "Prueba de pelicula",
+    "year": 2000,
+    "review_short": "",
+    "review_large": "",
+    "trailer_url": null,
+    "image_thumbnail": "http://localhost:8000/media/films/xxx/yyy.png",
+    "image_wallpaper": "http://localhost:8000/media/films/xxx/zzz.jpg"
+  }
+]
+```
+
+Vamos a usar la misma lógica de los serializadores anidados para simplificar el serializador de géneros de las películas y que no incluya las películas:
+
+#### **`films/serializers.py`**
+
+```python
+class FilmSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Film
+        fields = '__all__'
+
+    class NestedFilmGenreSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = FilmGenre
+            fields = '__all__'
+
+    genres = NestedFilmGenreSerializer(many=True)
+```
+
+Vamos a probar con la nueva lógica...
+
+```json
+[
+  {
+    "id": "42569494-d623-446e-8d14-3686860c5277",
+    "genres": [
+      {
+        "id": 1,
+        "name": "Prueba",
+        "slug": "prueba"
+      }
+    ],
+    "title": "Prueba de pelicula",
+    "year": 2000,
+    "review_short": "",
+    "review_large": "",
+    "trailer_url": null,
+    "image_thumbnail": "http://localhost:8000/media/films/xxx/yyy.png",
+    "image_wallpaper": "http://localhost:8000/media/films/xxx/zzz.jpg"
+  }
+]
+```
+
+¡Solucionado! ¿Y que bien quedan nuestras clases anidadas verdad?
+
+Por ahora os dejo [documentación](https://www.django-rest-framework.org/api-guide/serializers/) sobre ellos en los recursos, sólo por si queréis seguir aprendiendo por vuestra cuenta.
 
 ## C06 Base de datos preparada
 

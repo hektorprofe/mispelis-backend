@@ -505,7 +505,7 @@ Conseguiremos así una serialización mucho más simple:
 ]
 ```
 
-Sin embargo hacer todo ha desembocado en un último problemilla.
+Sin embargo hacer todo ha desembocado en un último problemilla...
 
 Si consultamos una película en la API veremos que nos está mostrando los géneros con las películas dentro de las películas... todo un lío:
 
@@ -558,7 +558,7 @@ class FilmSerializer(serializers.ModelSerializer):
     genres = NestedFilmGenreSerializer(many=True)
 ```
 
-Vamos a probar con la nueva lógica...
+Si probamos ahora con la nueva lógica...
 
 ```json
 [
@@ -582,7 +582,7 @@ Vamos a probar con la nueva lógica...
 ]
 ```
 
-¡Solucionado! ¿Y que bien quedan nuestras clases anidadas verdad?
+¡Solucionado! ¿Qué bien quedan nuestras clases anidadas verdad?
 
 Por ahora os dejo [documentación](https://www.django-rest-framework.org/api-guide/serializers/) sobre ellos en los recursos, sólo por si queréis seguir aprendiendo por vuestra cuenta.
 

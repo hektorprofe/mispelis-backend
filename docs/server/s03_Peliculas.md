@@ -282,14 +282,236 @@ Y ya podremos navegar por los viewsets de nuestra API:
 
 En la siguiente lección puliremos los serializadores para ofrecer más información.
 
-## C05 ViewSet de géneros
+## C05 Serializadores anidados
 
-## C06 Lista de pelis sin filtros
+Hay algunas cosas mejorables en nuestra API.
 
-Vista de peli sin interacción de los usuarios
+La primera es que cuando trabajamos con relaciones en los modelos, DRF automáticamente las serializa utilizando sus campos **ids**.
 
-## C07 Vistas privadas
+En este caso los géneros de una película forman parte de una relación **ManyToMany** y serializa los **ids** en una lista numérica:
 
-## C08 Base de datos preparada
+```json
+"genres": [
+    1
+]
+```
 
-## C09 Mejorar portada: Slideshow random
+Lo ideal es proporcionar más de información y para conseguirlo podemos utilizar un sistema de serialización anidada:
+
+#### **`films/serializers.py`**
+
+```python
+from rest_framework import serializers
+from .models import Film, FilmGenre
+
+
+class FilmGenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmGenre
+        fields = '__all__'
+
+
+class FilmSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Film
+        fields = '__all__'
+
+    genres = FilmGenreSerializer(many=True)  # new
+```
+
+El parámetro `many=True` indica que se tiene que serializar una lista de instancias, algo evidente teniendo en cuenta que `genres` es una relación **ManyToMany**. Además hay que cambiar el orden de los serializadores, ya que no se puede hacer referencia a una clase antes de declararla
+
+Si consultamos la API veremos que ahora las películas contienen la información anidada de los géneros en forma de lista de objetos:
+
+```json
+"genres": [
+    {
+        "id": 1,
+        "name": "Prueba",
+        "slug": "prueba"
+    }
+],
+```
+
+Otra cosa que podemos hacer es mostrar una lista de las películas que tiene cada género.
+
+Para conseguir esta funcionalidad hay que ser un poco más creativos, ya que por defecto nuestros géneros no contienen las películas, sino que son las películas las que contienen las referencias a los géneros.
+
+Por suerte Django permite hacer consultas inversas en las relaciones, algo que podemos usar a nuestro favor para crear nuestro propios campo **films** en el serializador de géneros:
+
+#### **`films/serializers.py`**
+
+```python
+class FilmGenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmGenre
+        fields = '__all__'
+
+    films = FilmSerializer(many=True, source="film_genres") # query reversa
+```
+
+Sin embargo hay un error en esta lógica: no podemos hacer referencia a la clase `FilmSerializer` porque se encuentra debajo de `FilmGenreSerializer`.
+
+Para solucionar este error podemos definir un serializador anidado de películas dentro de él mismo:
+
+#### **`films/serializers.py`**
+
+```python
+class FilmGenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmGenre
+        fields = '__all__'
+
+    class NestedFilmSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = Film
+            fields = '__all__'
+
+    films = NestedFilmSerializer(
+        many=True, read_only=True)
+```
+
+Esta estructura nos lleva nuevamente a hacer referencia a `FilmGenreSerializer`, pero como se encuentra abajo del todo no podemos acceder... así que vamos a crear una vez más otro serializador anidado dentro del serializador anidado, lo cuál generará una estructura de subclases muy interesante a la par que confusa:
+
+#### **`films/serializers.py`**
+
+```python
+from rest_framework import serializers
+from .models import Film, FilmGenre
+
+
+class FilmGenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmGenre
+        fields = '__all__'
+
+    class NestedFilmSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = Film
+            fields = '__all__'
+
+        class NestedFilmGenreSerializer(serializers.ModelSerializer):
+
+            class Meta:
+                model = FilmGenre
+                fields = '__all__'
+
+        genres = NestedFilmGenreSerializer(many=True)
+
+    films = NestedFilmSerializer(
+        many=True, source="film_genres")  # query reversa
+```
+
+Es un poco complejo de entender pero os aseguro que gracias a la serialización anidada se pueden hacer maravillas con muy poco código.
+
+En cualquier caso podemos consultar la API y notar como los géneros nos devuelven un campo **films** con una lista de películas y toda su información:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Prueba",
+    "slug": "prueba",
+    "films": [
+      {
+        "id": "xxx",
+        "genres": [
+          {
+            "id": 1,
+            "name": "Prueba",
+            "slug": "prueba"
+          }
+        ],
+        "title": "Prueba de pelicula",
+        "year": 2000,
+        "review_short": "",
+        "review_large": "",
+        "trailer_url": null,
+        "image_thumbnail": "http://localhost:8000/media/films/xxx/yyy.png",
+        "image_wallpaper": "http://localhost:8000/media/films/xxx/zzz.jpg"
+      }
+    ]
+  }
+]
+```
+
+La gracia ahora es adaptar los serializadores para devolver la información que consideremos necesaria.
+
+Por ejemplo no hace falta devolver todos los campos de la película en los géneros, por ahora será suficiente con el **id, el título, la miniatura y los géneros**:
+
+#### **`films/serializers.py`**
+
+```python
+class NestedFilmSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Film
+        fields = ['id', 'title', 'image_thumbnail', 'genres']
+
+        # BORRAMOS LO SIGUIENTE ========>
+
+        # class NestedFilmGenreSerializer(serializers.ModelSerializer):
+
+        #     class Meta:
+        #         model = FilmGenre
+        #         fields = '__all__'
+
+        # genres = NestedFilmGenreSerializer(many=True)
+```
+
+De hecho vamos a quitar los géneros de las películas en los géneros, es demasiado redundante y en el fondo sólo quería liaros un poco para que vieses una muestra del potencial de anidar serializadores:
+
+#### **`films/serializers.py`**
+
+```python
+class NestedFilmSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Film
+        fields = ['id', 'title', 'image_thumbnail']  # edited
+
+        # BORRAMOS LO SIGUIENTE ========>
+
+        # class NestedFilmGenreSerializer(serializers.ModelSerializer):
+
+        #     class Meta:
+        #         model = FilmGenre
+        #         fields = '__all__'
+
+        # genres = NestedFilmGenreSerializer(many=True)
+```
+
+Seguiremos editando estos serializadores en el futuro para añadir más funcionalidades, por ahora os dejo [documentación](https://www.django-rest-framework.org/api-guide/serializers/) sobre ellos en los recursos.
+
+## C06 Base de datos preparada
+
+Para acabar la unidad vamos a "instalar" la base de datos que he preparado para vosotros con mucho cariño. Un montón de buenas películas con la información e imágenes para hacer nuestros experimentos de la mejor forma posible.
+
+Simplemente tendréis que descargar el fichero `db_preparada.zip` en los recursos de esta lección y hacer lo que os enseño a continuación:
+
+1. Parar el servidor si lo tenéis en marcha.
+2. Borrar o renombrar el fichero **db.sqlite3** de la raiz.
+3. Borrar o renombrar los directorios **migrations** de las apps **authentication** y **films**.
+4. Extraer el contenido del fichero `db_preparada.zip` en la raíz del proyecto `server`y substutir si os lo pide.
+
+Al final deberéis tener de nuevo la base de datos **db.sqlite3** en la raíz, así como los nuevos directorios **migrations** en las apps y un montón de carpetas en el directorio **media/films**.
+
+Tened en cuenta que vuestros usuarios se habrán borrado, pero tendréis a vuestra disposición:
+
+- admin@admin.com : 1234
+- test@test.com : 12345678
+
+Siempre podéis crear nuevos administradores o editaros estos usuarios desde el panel de administrador.
+
+En cualquier caso ya deberíais poder acceder a esta versión preparada de la base de datos con un montón de películas y géneros.
+
+Buen provecho.
+
+# TO DO: preparar base de datos...

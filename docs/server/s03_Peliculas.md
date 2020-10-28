@@ -593,9 +593,9 @@ Para acabar la unidad vamos a "instalar" la base de datos que he preparado para 
 Simplemente tendréis que descargar el fichero `db_preparada.zip` en los recursos de esta lección y hacer lo que os enseño a continuación:
 
 1. Parar el servidor si lo tenéis en marcha.
-2. Borrar o renombrar el fichero **db.sqlite3** de la raiz.
-3. Borrar o renombrar los directorios **migrations** de las apps **authentication** y **films**.
-4. Extraer el contenido del fichero `db_preparada.zip` en la raíz del proyecto `server`y substutir si os lo pide.
+2. Borrar el fichero **db.sqlite3** de la raiz.
+3. Borrar los directorios **migrations** de las apps **authentication** y **films**.
+4. Extraer el contenido del fichero en la raíz del proyecto `server` y substutir si os lo pide.
 
 Al final deberéis tener de nuevo la base de datos **db.sqlite3** en la raíz, así como los nuevos directorios **migrations** en las apps y un montón de carpetas en el directorio **media/films**.
 
@@ -604,10 +604,6 @@ Tened en cuenta que vuestros usuarios se habrán borrado, pero tendréis a vuest
 - admin@admin.com : 1234
 - test@test.com : 12345678
 
-Siempre podéis crear nuevos administradores o editaros estos usuarios desde el panel de administrador.
-
-En cualquier caso ya deberíais poder acceder a esta versión preparada de la base de datos con un montón de películas y géneros.
+Siempre podéis crear nuevos administradores o editar estos usuarios desde el panel de administrador.
 
 Buen provecho.
-
-# TO DO: preparar base de datos...

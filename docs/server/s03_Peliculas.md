@@ -464,7 +464,7 @@ class NestedFilmSerializer(serializers.ModelSerializer):
         genres = NestedFilmGenreSerializer(many=True)
 ```
 
-De hecho vamos a quitar los géneros de las películas en los géneros, es demasiado redundante y en el fondo sólo quería liaros un poco para que vieses una muestra del potencial de anidar serializadores:
+De hecho vamos a quitar los géneros de las películas en los géneros, es demasiado redundante y mi única intención era que vieses cómo anidar múltiples serializadores:
 
 #### **`films/serializers.py`**
 
@@ -486,7 +486,7 @@ class NestedFilmSerializer(serializers.ModelSerializer):
         # genres = NestedFilmGenreSerializer(many=True)
 ```
 
-Conseguiremos así una serialización mucho más simple:
+Así conseguiremos una serialización más simple:
 
 ```json
 [

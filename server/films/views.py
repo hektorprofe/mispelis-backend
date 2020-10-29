@@ -29,8 +29,8 @@ class ExtendedPagination(PageNumberPagination):
             'num_pages': self.page.paginator.num_pages,
             'page_number': self.page.number,
             'page_size': self.page_size,
-            'next_link': next_link,           # edited
-            'previous_link': previous_link,   # edited
+            'next_link': next_link,          # edited
+            'previous_link': previous_link,  # edited
             'results': data
         })
 

@@ -1,5 +1,7 @@
 # S06 Reseñas y películas favoritas
 
+Empezamos la unidad 06
+
 ## C01 Presentación
 
 ## C02 Endpoint de interacción entre usuario y películas

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -44,9 +45,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_rest_passwordreset',
+    'django_filters',
 
     # Django custom apps
     'authentication',
+    'films',
 ]
 
 # Custom user model
@@ -136,3 +139,7 @@ STATIC_URL = '/static/'
 # Configuración de CORS
 CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
 CORS_ALLOW_CREDENTIALS = True
+
+# Media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # path al directorio local
+MEDIA_URL = 'http://localhost:8000/media/'    # url para el desarrollo

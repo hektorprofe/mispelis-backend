@@ -16,7 +16,7 @@ pylint = "*"
 "autopep8" = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "*"
 
 [scripts]
 server = "python manage.py runserver"

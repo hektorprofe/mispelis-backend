@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Film, FilmGenre
+from .models import Film, FilmGenre, FilmUser
 
 
 class FilmGenreSerializer(serializers.ModelSerializer):
@@ -31,3 +31,12 @@ class FilmSerializer(serializers.ModelSerializer):
             fields = '__all__'
 
     genres = NestedFilmGenreSerializer(many=True)
+
+
+class FilmUserSerializer(serializers.ModelSerializer):
+
+    film = FilmSerializer(read_only=True)
+
+    class Meta:
+        model = FilmUser
+        fields = ['film', 'favorite', 'note', 'state', 'review']

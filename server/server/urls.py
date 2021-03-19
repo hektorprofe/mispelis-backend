@@ -18,6 +18,7 @@ urlpatterns = [
     # Api routes
     path('api/', include('authentication.urls')),
     path('api/', include(router.urls)),
+    path('api/userfilms/', film_views.FilmUserViewSet.as_view())
 ]
 # Serve static files in development server
 if settings.DEBUG:
